@@ -88,7 +88,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
+            const Spacer(flex: 2),
             Stack(
               alignment: Alignment.center,
               children: [
@@ -108,7 +110,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const Spacer(flex: 1),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -131,6 +133,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 ),
               ],
             ),
+            const Spacer(flex: 3),
           ],
         ),
       ),
