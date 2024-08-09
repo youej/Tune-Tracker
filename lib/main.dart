@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_sound/flutter_sound.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
 void main() {
   runApp(const MyApp());
@@ -33,6 +37,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool isRunning = false;
   Duration duration = const Duration();
   late Ticker _ticker;
+  final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
+  bool isRecording = false;
+  String audioFilePath = '';
+  int secondsCounter = 0;
+  bool activated = false;
 
   @override
   void initState() {
@@ -42,8 +51,23 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         setState(() {
           duration += const Duration(seconds: 1);
         });
+        secondsCounter += 1;
+        if (secondsCounter >= 60) {
+          _stopTimer();
+          _restartRecording();
+          secondsCounter = 0;
+        }
       }
+
     });
+    _initializeRecorder();
+  }
+
+  Future<void> _initializeRecorder() async {
+    await Permission.microphone.request();
+    await _recorder.openAudioSession();
+    Directory tempDir = await getTemporaryDirectory();
+    audioFilePath = '${tempDir.path}/audio.aac';
   }
 
   @override
@@ -70,6 +94,59 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     setState(() {
       duration = const Duration();
     });
+  }
+
+  void _startRecording() {
+    _recorder.startRecorder(toFile: audioFilePath);
+    setState(() {
+      isRecording = true;
+    });
+  }
+
+  void _stopRecording() {
+    _recorder.stopRecorder();
+    setState(() {
+      isRecording = false;
+    });
+  }
+
+  void _restartRecording() async {
+    _stopRecording(); // stops current recording
+    _checkAudio(); // processes current recording
+    _startRecording(); // starts new recording
+  }
+
+  void _activateFeature() {
+    if (isRecording) {
+      _stopRecording();
+    }
+    else {
+      _startRecording();
+    }
+
+    activated = !activated;
+
+    // Logic for activating the feature goes here
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Feature activated!')),
+    );
+
+  }
+
+  void _checkAudio() async {
+    final file = File(audioFilePath);
+    bool isMusic = true;
+    if (file.existsSync()) {
+      // Perform audio classification
+      isMusic = false;
+    }
+
+    if (isMusic) {
+      _startTimer();
+    }
+    else {
+      _stopTimer();
+    }
   }
 
   @override
@@ -116,19 +193,37 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               children: [
                 ElevatedButton(
                   onPressed: isRunning ? _stopTimer : _startTimer,
-                  child: Text(isRunning ? 'Stop' : 'Start'),
+                  child: Text(
+                      isRunning ? 'Stop' : 'Start',
+                      style: TextStyle(color: Colors.black)
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue, // Dark blue color
                     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                   ),
                 ),
-                const SizedBox(width: 20),
+                const SizedBox(width: 10),
                 ElevatedButton(
                   onPressed: _resetTimer,
-                  child: const Text('Reset'),
+                  child: const Text(
+                      'Reset',
+                      style: TextStyle(color: Colors.black)
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.grey, // Grey color for reset button
                     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: _activateFeature,
+                  child: Text(
+                      isRecording ? 'Deactivate' : 'Activate',
+                      style: TextStyle(color: Colors.black)
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green[600], // Dark blue color
+                    padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 16),
                   ),
                 ),
               ],
