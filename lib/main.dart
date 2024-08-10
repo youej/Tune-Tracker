@@ -52,8 +52,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           duration += const Duration(seconds: 1);
         });
         secondsCounter += 1;
-        if (secondsCounter >= 60) {
-          _stopTimer();
+        if (secondsCounter >= 1800) {
           _restartRecording();
           secondsCounter = 0;
         }
@@ -93,6 +92,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   void _resetTimer() {
     setState(() {
       duration = const Duration();
+      secondsCounter = 0;
     });
   }
 
@@ -111,9 +111,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   void _restartRecording() async {
-    _stopRecording(); // stops current recording
     _checkAudio(); // processes current recording
-    _startRecording(); // starts new recording
+    _stopRecording();
+    _startRecording();
   }
 
   void _activateFeature() {
@@ -138,6 +138,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     bool isMusic = true;
     if (file.existsSync()) {
       // Perform audio classification
+      print(secondsCounter);
       isMusic = false;
     }
 
@@ -156,7 +157,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         backgroundColor: Colors.grey[5000], // Lighter shade of black
         title: Row(
           children: const [
-            Icon(Icons.music_note),
+            Icon(Icons.music_note, color: Colors.white),
             SizedBox(width: 10),
             Text("Tune Tracker"),
           ],
